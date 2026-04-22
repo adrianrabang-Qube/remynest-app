@@ -2,12 +2,19 @@ import { NextResponse } from 'next/server'
 
 export async function GET(req: Request) {
   try {
-    const { message } = await req.json()
+    // ✅ Get message from URL query param
+    const { searchParams } = new URL(req.url)
+    const message = searchParams.get('message')
 
+    // ❌ If no message → return error
     if (!message) {
-      return NextResponse.json({ error: 'No message provided' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No message provided' },
+        { status: 400 }
+      )
     }
 
+    // ✅ Send notification via OneSignal
     const res = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
@@ -16,20 +23,28 @@ export async function GET(req: Request) {
       },
       body: JSON.stringify({
         app_id: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID,
-        included_segments: ['All'], // send to all subscribed users
+        included_segments: ['All'],
         contents: { en: message },
       }),
     })
 
     const data = await res.json()
 
-    if (!res.ok) {
-      console.error('ONESIGNAL ERROR:', data)
-      return NextResponse.json({ error: 'Notification failed' }, { status: 500 })
-    }
+    // ✅ Return success
+    return NextResponse.json({
+      success: true,
+      onesignal: data,
+    })
 
-    return NextResponse.json({ success: true, data })
   } catch (err) {
-    return NextResponse.json({ error: 'Server crash' }, { status: 500 })
+    console.error(err)
+
+    return NextResponse.json(
+      {
+        error: 'Server crash',
+        details: err,
+      },
+      { status: 500 }
+    )
   }
 }
