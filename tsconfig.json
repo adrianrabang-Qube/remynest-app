@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
+<<<<<<< HEAD
     "target": "ES2017",
+=======
+    "target": "ES2020",
+>>>>>>> ae84d54 (fix imports to @/app/utils/supabase/server)
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -13,6 +17,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+<<<<<<< HEAD
 
     "baseUrl": ".",
     "paths": {
@@ -22,3 +27,15 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
+=======
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "plugins": [
+      { "name": "next" }
+    ]
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
+>>>>>>> ae84d54 (fix imports to @/app/utils/supabase/server)

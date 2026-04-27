@@ -1,16 +1,32 @@
-import { createClient } from "../../../lib/supabase/server"
+import { createClient } from "@/app/utils/supabase/server"
+import Link from "next/link"
 
-export default async function RemindersPage() {
-  const supabase = createClient()
+export default function NewReminderPage() {
+  async function createReminder(formData: FormData) {
+    "use server"
 
-  const { data, error } = await supabase
-    .from("reminders")
-    .select("*")
+    const supabase = createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) throw new Error("Not authenticated")
+
+    const title = formData.get("title") as string
+
+    await supabase.from("reminders").insert({
+      title,
+      user_id: user.id,
+    })
+
+    redirect("/reminders")
+  }
 
   return (
-    <div>
-      <h1>Reminders</h1>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
+    <form action={createReminder}>
+      <input name="title" placeholder="Reminder title" required />
+      <button type="submit">Create Reminder</button>
+    </form>
   )
 }

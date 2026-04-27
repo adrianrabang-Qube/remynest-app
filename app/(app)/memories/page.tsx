@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { createClient } from "../../../lib/supabase/server"
+=======
+import { createClient } from "@/app/utils/supabase/server"
+>>>>>>> ae84d54 (fix imports to @/app/utils/supabase/server)
 import Link from "next/link"
 
 export default async function MemoriesPage() {
@@ -14,24 +18,21 @@ export default async function MemoriesPage() {
     .from("memories")
     .select("*")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
 
   return (
     <div>
-      <h1>Memories</h1>
+      <h1>Your Memories</h1>
 
-      <Link href="/memories/new">+ New Memory</Link>
+      <Link href="/memories/new">Create New</Link>
 
-      {!memories || memories.length === 0 ? (
-        <div>No memories yet</div>
-      ) : (
-        memories.map((m) => (
-          <div key={m.id} style={{ marginBottom: 12 }}>
+      <ul>
+        {memories?.map((m: any) => (
+          <li key={m.id}>
             <strong>{m.title}</strong>
-            <div>{m.content}</div>
-          </div>
-        ))
-      )}
+            <p>{m.content}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
