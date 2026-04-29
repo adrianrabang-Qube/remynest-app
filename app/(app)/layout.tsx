@@ -1,37 +1,20 @@
-import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      
-      {/* Sidebar */}
-      <div
-        style={{
-          width: 220,
-          background: "#111",
-          color: "#fff",
-          padding: 20,
-        }}
-      >
-        <h3>Remydr</h3>
+  const supabase = createClient()
 
-        <nav style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/memories">Memories</Link>
-          <Link href="/new">New Memory</Link>
-          <Link href="/timeline">Timeline</Link>
-          <Link href="/reminders">Reminders</Link>
-        </nav>
-      </div>
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-      {/* Main content */}
-      <main style={{ flex: 1, padding: 20 }}>
-        {children}
-      </main>
-    </div>
-  )
+  if (!user) {
+    redirect("/login")
+  }
+
+  return <>{children}</>
 }
