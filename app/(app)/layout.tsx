@@ -12,6 +12,7 @@ export default async function AppLayout({
     data: { user },
   } = await supabase.auth.getUser()
 
+  // 🚨 CRITICAL CHECK
   if (!user) {
     redirect("/login")
   }
