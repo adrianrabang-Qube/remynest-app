@@ -1,14 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   DESIGN SYSTEM
+========================= */
+
 :root {
   --bg: #F5EFE7;
   --card: #FFFFFF;
   --text: #2F3E34;
   --muted: #6B7280;
+
   --accent: #E6A57E;
-  --green: #3E5F4E;
+  --green: #355F4E;
+
+  --radius: 20px;
 }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Typography */
+
+h1, h2, h3 {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Card */
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+}
+
+/* Buttons */
+
+.btn-primary {
+  background: var(--green);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+/* Inputs */
+
+.input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+/* Spacing */
+
+.section {
+  margin-top: 24px;
 }

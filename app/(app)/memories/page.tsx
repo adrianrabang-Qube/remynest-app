@@ -1,52 +1,55 @@
-import { createClient } from "@/lib/supabase/server"
-import MemoryForm from "@/components/MemoryForm"
-import { createMemory, updateMemory, deleteMemory } from "./actions"
+"use client";
 
-export default async function MemoriesPage() {
-  const supabase = createClient()
+import { useEffect, useState } from "react";
+import MemoryCard from "@/components/MemoryCard";
 
-  const { data: memories } = await supabase
-    .from("memories")
-    .select("*")
-    .order("created_at", { ascending: false })
+type Memory = {
+  id: string;
+  title: string;
+  content: string;
+};
+
+export default function MemoriesPage() {
+  const [memories, setMemories] = useState<Memory[]>([]);
+
+  useEffect(() => {
+    const fetchMemories = async () => {
+      const res = await fetch("/api/memories");
+      const data = await res.json();
+      setMemories(data);
+    };
+
+    fetchMemories();
+  }, []);
+
+  const handleDelete = (id: string) => {
+    setMemories((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  const handleUpdate = (updated: Memory) => {
+    setMemories((prev) =>
+      prev.map((m) => (m.id === updated.id ? updated : m))
+    );
+  };
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold">Your Memories</h1>
 
-      <h1 className="text-3xl font-semibold text-[#2F3E34]">
-        Your <span className="text-[#E6A57E] italic">Memories</span>
-      </h1>
-
-      {/* Create Memory */}
-      <div className="bg-white/90 backdrop-blur rounded-3xl p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-white/40">
-        <MemoryForm action={createMemory} />
-      </div>
-
-      {/* Memory List */}
-      <div className="space-y-6">
-        {memories?.map((m) => (
-          <div
-            key={m.id}
-            className="bg-white/90 backdrop-blur rounded-3xl p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-white/40"
-          >
-            <MemoryForm
-              action={updateMemory}
-              id={m.id}
-              defaultTitle={m.title}
-              defaultContent={m.content}
-              buttonText="Save Changes"
+      {memories.length === 0 ? (
+        <p className="text-gray-500">No memories yet.</p>
+      ) : (
+        <div className="space-y-4">
+          {memories.map((memory) => (
+            <MemoryCard
+              key={memory.id}
+              memory={memory}
+              onDelete={handleDelete}
+              onUpdate={handleUpdate}
             />
-
-            <form action={deleteMemory} className="mt-4">
-              <input type="hidden" name="id" value={m.id} />
-              <button className="text-red-400 text-sm hover:underline">
-                Delete
-              </button>
-            </form>
-          </div>
-        ))}
-      </div>
-
+          ))}
+        </div>
+      )}
     </div>
-  )
+  );
 }
