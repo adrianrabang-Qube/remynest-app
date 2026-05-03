@@ -1,77 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import { TOAST_MESSAGES } from "@/lib/toastMessages";
 
 export default function CreateMemoryModal({
   onClose,
-  onCreated,
-  showToast,
+  onCreate,
 }: {
   onClose: () => void;
-  onCreated: (memory: any) => void;
-  showToast: (message: string, type?: "success" | "error") => void;
+  onCreate: (data: { title: string; content: string }) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  async function handleSubmit() {
     setLoading(true);
-
-    const res = await fetch("/api/memories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      showToast(err?.error || TOAST_MESSAGES.ERROR_GENERIC, "error");
-      setLoading(false);
-      return;
-    }
-
-    const newMemory = await res.json();
-
-    onCreated(newMemory);
-    showToast(TOAST_MESSAGES.MEMORY_CREATED);
-
+    await onCreate({ title, content });
     setLoading(false);
-    onClose();
-  };
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
-      <div className="card w-full max-w-md">
-        <h2>Create Memory</h2>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+      <div className="bg-white p-6 rounded w-[400px] space-y-4">
+        <h2 className="text-lg font-semibold">Create Memory</h2>
 
         <input
-          className="input mt-3"
+          className="border p-2 w-full"
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
         <textarea
-          className="input mt-3"
+          className="border p-2 w-full"
           placeholder="Content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
 
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-2">
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="btn-primary"
+            className="bg-black text-white px-4 py-2"
           >
             {loading ? "Saving..." : "Save"}
           </button>
 
-          <button onClick={onClose} className="text-gray-500">
-            Cancel
-          </button>
+          <button onClick={onClose}>Cancel</button>
         </div>
       </div>
     </div>

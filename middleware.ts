@@ -1,44 +1,46 @@
-import { createServerClient } from "@supabase/ssr"
-import { NextResponse, type NextRequest } from "next/server"
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
-  let res = NextResponse.next()
+  const res = NextResponse.next();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return req.cookies.get(name)?.value
+        getAll() {
+          return req.cookies.getAll();
         },
-        set(name: string, value: string, options: any) {
-          res.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: any) {
-          res.cookies.set({ name, value: "", ...options })
+        setAll(cookies) {
+          cookies.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
         },
       },
     }
-  )
+  );
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  const protectedRoutes = ["/dashboard", "/memories"]
+  const isAuthPage =
+    req.nextUrl.pathname.startsWith("/login") ||
+    req.nextUrl.pathname.startsWith("/signup");
 
-  const isProtected = protectedRoutes.some((route) =>
-    req.nextUrl.pathname.startsWith(route)
-  )
-
-  if (isProtected && !user) {
-    return NextResponse.redirect(new URL("/login", req.url))
+  if (!user && !isAuthPage) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  return res
+  if (user && isAuthPage) {
+    return NextResponse.redirect(new URL("/memories", req.url));
+  }
+
+  return res;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/memories/:path*"],
-}
+  matcher: ["/((?!_next|favicon.ico).*)"],
+};

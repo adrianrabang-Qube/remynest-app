@@ -1,19 +1,42 @@
-"use client"
+"use client";
 
-import { useFormStatus } from "react-dom"
+import { useState } from "react";
 
-export default function SubmitButton({ text }: { text: string }) {
-  const { pending } = useFormStatus()
+type Props = {
+  children: React.ReactNode;
+  onClick?: () => Promise<void> | void;
+  className?: string;
+};
+
+export default function SubmitButton({
+  children,
+  onClick,
+  className = "",
+}: Props) {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      await onClick?.();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <button
-      type="submit"
-      disabled={pending}
-      className={`px-4 py-2 text-white ${
-        pending ? "bg-gray-400" : "bg-black"
-      }`}
+      onClick={handleClick}
+      disabled={loading}
+      className={`px-4 py-2 rounded text-white transition ${
+        loading
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-blue-600 hover:bg-blue-700"
+      } ${className}`}
     >
-      {pending ? "Loading..." : text}
+      {loading ? "Saving..." : children}
     </button>
-  )
+  );
 }

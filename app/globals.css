@@ -31,13 +31,8 @@ h1, h2, h3 {
   letter-spacing: -0.02em;
 }
 
-h1 {
-  font-size: 2rem;
-}
-
-h2 {
-  font-size: 1.5rem;
-}
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
 
 p {
   color: var(--muted);
@@ -88,7 +83,10 @@ p {
 .section {
   margin-top: 24px;
 }
-/* ===== Toast Animation ===== */
+
+/* =========================
+   TOAST ANIMATIONS
+========================= */
 
 @keyframes slideIn {
   from {
@@ -101,6 +99,21 @@ p {
   }
 }
 
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
 .animate-slideIn {
   animation: slideIn 0.25s ease-out forwards;
+}
+
+.animate-slideOut {
+  animation: slideOut 0.25s ease-in forwards;
 }

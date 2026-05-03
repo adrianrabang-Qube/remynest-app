@@ -1,14 +1,15 @@
-import { createClient } from "@/utils/supabase/server";
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return Response.json([]);
+    return NextResponse.json([]);
   }
 
   const { data, error } = await supabase
@@ -18,39 +19,41 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    return Response.json([]);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json(data);
+  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
-  const supabase = await createClient();
+  const supabase = createClient();
+  const body = await req.json();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  const { title, content } = body;
 
   const { data, error } = await supabase
     .from("memories")
-    .insert({
-      title: body.title,
-      content: body.content,
-      user_id: user.id,
-    })
+    .insert([
+      {
+        title,
+        content,
+        user_id: user.id,
+      },
+    ])
     .select()
     .single();
 
   if (error) {
-    console.error("POST ERROR:", error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json(data);
+  return NextResponse.json(data);
 }

@@ -1,90 +1,114 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import MemoryCard from "@/components/MemoryCard";
 import CreateMemoryModal from "@/components/CreateMemoryModal";
 import EditMemoryModal from "@/components/EditMemoryModal";
-import { useToast } from "@/components/ToastProvider";
 
 type Memory = {
   id: string;
   title: string;
   content: string;
+  created_at: string;
 };
 
 export default function MemoriesPage() {
-  const [memories, setMemories] = useState<Memory[]>([]);
+  const queryClient = useQueryClient();
+
   const [showCreate, setShowCreate] = useState(false);
-  const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
+  const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
 
-  const { showToast } = useToast();
-
-  // Fetch memories
-  useEffect(() => {
-    const fetchMemories = async () => {
+  const { data: memories = [] } = useQuery<Memory[]>({
+    queryKey: ["memories"],
+    queryFn: async () => {
       const res = await fetch("/api/memories");
-      const data = await res.json();
-      setMemories(data);
-    };
+      return res.json();
+    },
+  });
 
-    fetchMemories();
-  }, []);
+  const createMutation = useMutation({
+    mutationFn: async (data: { title: string; content: string }) => {
+      await fetch("/api/memories", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memories"] });
+      setShowCreate(false);
+    },
+  });
 
-  // Add new memory
-  const handleCreated = (memory: Memory) => {
-    setMemories((prev) => [memory, ...prev]);
-  };
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      title,
+      content,
+    }: {
+      id: string;
+      title: string;
+      content: string;
+    }) => {
+      await fetch(`/api/memories/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ title, content }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memories"] });
+      setEditingMemory(null);
+    },
+  });
 
-  // Update memory
-  const handleUpdated = (updated: Memory) => {
-    setMemories((prev) =>
-      prev.map((m) => (m.id === updated.id ? updated : m))
-    );
-  };
-
-  // Delete memory
-  const handleDelete = (id: string) => {
-    setMemories((prev) => prev.filter((m) => m.id !== id));
-  };
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await fetch(`/api/memories/${id}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memories"] });
+    },
+  });
 
   return (
-    <div className="section">
-      <h1>Your Memories</h1>
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-semibold">Your Memories</h1>
 
-      <button
-        className="btn-primary mt-4"
-        onClick={() => setShowCreate(true)}
-      >
-        + New
+      <button onClick={() => setShowCreate(true)} className="text-blue-600">
+        + New Memory
       </button>
 
-      <div className="mt-6 space-y-4">
-        {memories.map((memory) => (
-          <MemoryCard
-            key={memory.id}
-            memory={memory}
-            onDelete={handleDelete}
-            showToast={showToast}
-          />
-        ))}
-      </div>
+      {memories.map((memory) => (
+        <MemoryCard
+          key={memory.id}
+          memory={memory}
+          onEdit={() => setEditingMemory(memory)}
+          onDelete={() => deleteMutation.mutate(memory.id)}
+        />
+      ))}
 
-      {/* CREATE MODAL */}
       {showCreate && (
         <CreateMemoryModal
           onClose={() => setShowCreate(false)}
-          onCreated={handleCreated}
-          showToast={showToast}
+          onCreate={async (data) => {
+            await createMutation.mutateAsync(data);
+          }}
         />
       )}
 
-      {/* EDIT MODAL */}
-      {selectedMemory && (
+      {editingMemory && (
         <EditMemoryModal
-          memory={selectedMemory}
-          onClose={() => setSelectedMemory(null)}
-          onUpdated={handleUpdated}   // ✅ FIXED NAME
-          showToast={showToast}
+          memory={editingMemory}
+          onClose={() => setEditingMemory(null)}
+          onUpdate={async (data) => {
+            await updateMutation.mutateAsync({
+              id: editingMemory.id,
+              ...data,
+            });
+          }}
         />
       )}
     </div>
